@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Satellite FOV Tool</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .header {
+            background: #2a5298;
+            padding: 20px;
+            border-bottom: 3px solid #00ff00;
+        }
+        .header h1 {
+            margin: 0;
+            color: #00ff00;
+        }
+        .search-bar {
+            background: #2a2a2a;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        #addressInput {
+            flex: 1;
+            padding: 12px;
+            background: #1a1a1a;
+            color: white;
+            border: 2px solid #444;
+            border-radius: 5px;
+        }
+        #searchBtn {
+            padding: 12px 30px;
+            background: #00ff00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .container {
+            display: flex;
+            height: calc(100vh - 140px);
+        }
+        #map {
+            flex: 1;
+            position: relative;
+        }
+        .map-tools {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid #00ff00;
+            z-index: 1000;
+            max-width: 160px;
+        }
+        .tool-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+            background: #1a1a1a;
+            color: white;
+            border: 2px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .tool-btn.active {
+            background: #00ff00;
+            color: black;
+            border-color: #00ff00;
+        }
+        .tool-btn:last-child {
+            margin-bottom: 0;
+        }
+        .opacity-control {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #444;
+        }
+        .opacity-control label {
+            font-size: 11px;
+            display: block;
+            margin-bottom: 5px;
+            color: white;
+        }
+        .controls {
+            width: 350px;
+            background: #2a2a2a;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section h3 {
+            color: #00ff00;
+            margin-bottom: 10px;
+        }
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px;
+            background: #1a1a1a;
+            color: white;
+            border: 2px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn.active {
+            background: #00ff00;
+            color: black;
+            border-color: #00ff00;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .value {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .info-box {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            margin-bottom: 15px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        .assessment {
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 2px solid;
+        }
+        .good {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        .warning {
+            background: rgba(255, 165, 0, 0.1);
+            border-color: #ffa500;
+            color: #ffa500;
+        }
+        .bad {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+        .question-box {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #00ff00;
+            margin-bottom: 15px;
+        }
+        .question-box h4 {
+            margin: 0 0 10px 0;
+            color: #00ff00;
+        }
+        .question-item {
+            margin-bottom: 15px;
+        }
+        .question-item:last-child {
+            margin-bottom: 0;
+        }
+        .question-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .assess-btn {
+            width: 100%;
+            padding: 12px;
+            background: #00ff00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .clear-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #444;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Satellite FOV Assessment Tool</h1>
+        <p>Search address and assess installation viability</p>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="addressInput" placeholder="Enter address (e.g., 3462 NE Marion Lane, Issaquah, WA)">
+        <button id="searchBtn">Search Location</button>
+    </div>
+
+    <div class="container">
+        <div id="map">
+            <div class="map-tools">
+                <button class="tool-btn" id="measureBtn">📏 Measure Distance</button>
+                <button class="tool-btn" id="markObstacleBtn">🌲 Mark Obstacle</button>
+                <button class="tool-btn" id="clearToolsBtn">🗑️ Clear Markings</button>
+                <button class="tool-btn" id="toggleViewBtn">🔄 Toggle Street View</button>
+                <div class="opacity-control">
+                    <label>Cone Opacity: <span id="opacityValue">25%</span></label>
+                    <input type="range" id="opacitySlider" min="0" max="80" value="25" style="width: 100%;">
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="section">
+                <h3>Installation Type</h3>
+                <div class="btn-group">
+                    <button class="btn" id="groundBtn">Ground/Pole<br>1.7m</button>
+                    <button class="btn active" id="roofBtn">Roof Mount<br>5m</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Installation Height</h3>
+                <div class="slider-label">
+                    <span>Height from ground</span>
+                    <span class="value" id="heightValue">5.0m / 16.4ft</span>
+                </div>
+                <input type="range" id="heightSlider" min="1" max="10" step="0.1" value="5">
+            </div>
+
+            <div class="section">
+                <h3>FOV Cone Angle</h3>
+                <div class="slider-label">
+                    <span>Cone angle</span>
+                    <span class="value" id="fovValue">110 deg</span>
+                </div>
+                <input type="range" id="fovSlider" min="90" max="120" value="110">
+            </div>
+
+            <div class="section">
+                <h3>Cone Direction (Azimuth)</h3>
+                <div class="slider-label">
+                    <span>Rotate to find best view</span>
+                    <span class="value" id="rotationValue">0° (North)</span>
+                </div>
+                <input type="range" id="rotationSlider" min="0" max="360" value="0">
+                <p style="font-size: 11px; color: #888; margin-top: 5px;">Antenna is azimuth independent - can face any direction</p>
+            </div>
+
+            <hr>
+
+            <div id="questionBox" style="display: none;" class="question-box">
+                <h4>Site Assessment Questions</h4>
+                
+                <div class="question-item">
+                    <label>Are there obstructions (trees/buildings) within the green coverage cone?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="trees" value="no"> No - Clear sky</label>
+                        <label><input type="radio" name="trees" value="yes"> Yes - Obstructed</label>
+                    </div>
+                </div>
+
+                <div class="question-item">
+                    <label>Can you rotate the cone to find a direction with 110° of clear sky?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="buildings" value="no"> Yes - Found clear direction</label>
+                        <label><input type="radio" name="buildings" value="yes"> No - All directions blocked</label>
+                    </div>
+                </div>
+
+                <div class="question-item">
+                    <label>At 35° elevation angle, is the sky view mostly unobstructed?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="clear" value="yes"> Yes - Clear</label>
+                        <label><input type="radio" name="clear" value="no"> No - Blocked</label>
+                    </div>
+                </div>
+
+                <button class="assess-btn" id="assessBtn">Generate Assessment</button>
+            </div>
+
+            <div id="assessmentBox" style="display: none;"></div>
+
+            <div class="info-box">
+                <h3>Coverage</h3>
+                <div class="info-row">
+                    <span>Direction:</span>
+                    <span class="value" id="directionDisplay">NORTH (0°)</span>
+                </div>
+                <div class="info-row">
+                    <span>Ground Range:</span>
+                    <span class="value" id="rangeValue">3.5m / 11.5ft</span>
+                </div>
+                <div class="info-row">
+                    <span>Coverage Area:</span>
+                    <span class="value" id="areaValue">10.7 sq m / 115.2 sq ft</span>
+                </div>
+            </div>
+
+            <div class="info-box" id="locationBox" style="display: none;">
+                <h3>Installation Location</h3>
+                <div class="info-row">
+                    <span>Latitude:</span>
+                    <span class="value" id="latValue">--</span>
+                </div>
+                <div class="info-row">
+                    <span>Longitude:</span>
+                    <span class="value" id="lngValue">--</span>
+                </div>
+                <div class="info-row" id="dmsRow" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
+                    <span style="font-size: 12px;">DMS Format:</span>
+                </div>
+                <div id="dmsValue" style="font-size: 11px; color: #00ff00; margin-top: 5px; display: none;"></div>
+                <button class="btn" id="toggleDmsBtn" style="margin-top: 10px; width: 100%; font-size: 12px;">Show DMS Format</button>
+            </div>
+
+            <button class="clear-btn" id="clearBtn" style="display: none;">Clear Placement</button>
+        </div>
+    </div>
+
+    <script>
+        var map;
+        var panorama;
+        var streetViewService;
+        var isStreetView = false;
+        var marker;
+        var cone;
+        var searchMarker;
+        var directionLine;
+        var installHeight = 5.0;
+        var fovAngle = 110;
+        var coneOpacity = 0.25;
+        var showDms = false;
+        var coneRotation = 0; // Degrees from north (0 = north, 90 = east, etc.)
+        
+        var measureMode = false;
+        var measureStart = null;
+        var measureMarkers = [];
+        
+        var obstacleMode = false;
+        var obstacles = [];
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 47.5301, lng: -122.0326 },
+                zoom: 20,
+                mapTypeId: 'satellite',
+                tilt: 0,
+                streetViewControl: true
+            });
+            
+            panorama = map.getStreetView();
+            streetViewService = new google.maps.StreetViewService();
+
+            map.addListener('click', function(e) {
+                if (measureMode) {
+                    handleMeasureClick(e.latLng);
+                } else if (obstacleMode) {
+                    handleObstacleClick(e.latLng);
+                } else {
+                    placeMarker(e.latLng);
+                }
+            });
+
+            updateCalculations();
+        }
+
+        function placeMarker(location) {
+            if (marker) {
+                marker.setMap(null);
+            }
+            if (cone) {
+                cone.setMap(null);
+            }
+            if (directionLine) {
+                directionLine.setMap(null);
+            }
+
+            marker = new google.maps.Marker({
+                position: location,
+                map: map,
+                draggable: true,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 12,
+                    fillColor: '#ff0000',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 3
+                }
+            });
+
+            marker.addListener('drag', function() {
+                updateCone();
+                updateLocationDisplay();
+            });
+            
+            marker.addListener('dragend', function() {
+                updateCone();
+                updateLocationDisplay();
+            });
+            
+            updateCone();
+            updateLocationDisplay();
+            document.getElementById('clearBtn').style.display = 'block';
+            document.getElementById('questionBox').style.display = 'block';
+            document.getElementById('locationBox').style.display = 'block';
+            document.getElementById('assessmentBox').style.display = 'none';
+            
+            document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+                radio.checked = false;
+            });
+        }
+
+        function updateLocationDisplay() {
+            if (marker) {
+                var pos = marker.getPosition();
+                var lat = pos.lat();
+                var lng = pos.lng();
+                
+                document.getElementById('latValue').textContent = lat.toFixed(6);
+                document.getElementById('lngValue').textContent = lng.toFixed(6);
+                
+                var latDMS = convertToDMS(lat, true);
+                var lngDMS = convertToDMS(lng, false);
+                document.getElementById('dmsValue').textContent = latDMS + ' ' + lngDMS;
+            }
+        }
+        
+        function convertToDMS(decimal, isLat) {
+            var absolute = Math.abs(decimal);
+            var degrees = Math.floor(absolute);
+            var minutesDecimal = (absolute - degrees) * 60;
+            var minutes = Math.floor(minutesDecimal);
+            var seconds = Math.floor((minutesDecimal - minutes) * 60);
+            
+            var direction;
+            if (isLat) {
+                direction = decimal >= 0 ? 'N' : 'S';
+            } else {
+                direction = decimal >= 0 ? 'E' : 'W';
+            }
+            
+            return degrees + '°' + minutes + "'" + seconds + '"' + direction;
+        }
+
+        function updateCone() {
+            if (!marker) {
+                return;
+            }
+            if (cone) {
+                cone.setMap(null);
+            }
+            if (directionLine) {
+                directionLine.setMap(null);
+            }
+
+            // Calculate radius based on 35° elevation angle
+            // At 35° elevation, ground distance = height / tan(35°)
+            var elevationAngle = 35 * Math.PI / 180;
+            var maxGroundDistance = installHeight / Math.tan(elevationAngle);
+            
+            var center = marker.getPosition();
+            var path = [];
+            path.push(center);
+            
+            var halfAngle = fovAngle / 2;
+            
+            // Create cone rotated by coneRotation degrees
+            for (var i = 0; i <= 30; i++) {
+                var angle = (coneRotation - halfAngle + (fovAngle * i / 30)) * Math.PI / 180;
+                var lat = center.lat() + (maxGroundDistance / 111320) * Math.cos(angle);
+                var lng = center.lng() + (maxGroundDistance / (111320 * Math.cos(center.lat() * Math.PI / 180))) * Math.sin(angle);
+                path.push(new google.maps.LatLng(lat, lng));
+            }
+            path.push(center);
+
+            cone = new google.maps.Polygon({
+                paths: path,
+                strokeColor: '#00ff00',
+                strokeWeight: 3,
+                fillColor: '#00ff00',
+                fillOpacity: coneOpacity,
+                map: map
+            });
+            
+            // Direction line pointing in rotation direction
+            var lineLength = maxGroundDistance * 1.2;
+            var lineAngle = coneRotation * Math.PI / 180;
+            var lineEndLat = center.lat() + (lineLength / 111320) * Math.cos(lineAngle);
+            var lineEndLng = center.lng() + (lineLength / (111320 * Math.cos(center.lat() * Math.PI / 180))) * Math.sin(lineAngle);
+            
+            directionLine = new google.maps.Polyline({
+                path: [center, new google.maps.LatLng(lineEndLat, lineEndLng)],
+                strokeColor: '#ff0000',
+                strokeWeight: 6,
+                strokeOpacity: 1.0,
+                map: map,
+                zIndex: 10000
+            });
+            
+            // Update direction display
+            var directionName = getDirectionName(coneRotation);
+            document.getElementById('directionDisplay').textContent = directionName + ' (' + coneRotation + '°)';
+        }
+        
+        function getDirectionName(degrees) {
+            if (degrees >= 337.5 || degrees < 22.5) return 'NORTH';
+            if (degrees >= 22.5 && degrees < 67.5) return 'NE';
+            if (degrees >= 67.5 && degrees < 112.5) return 'EAST';
+            if (degrees >= 112.5 && degrees < 157.5) return 'SE';
+            if (degrees >= 157.5 && degrees < 202.5) return 'SOUTH';
+            if (degrees >= 202.5 && degrees < 247.5) return 'SW';
+            if (degrees >= 247.5 && degrees < 292.5) return 'WEST';
+            if (degrees >= 292.5 && degrees < 337.5) return 'NW';
+            return 'NORTH';
+        }
+
+        function performAssessment() {
+            var trees = document.querySelector('input[name="trees"]:checked');
+            var buildings = document.querySelector('input[name="buildings"]:checked');
+            var clear = document.querySelector('input[name="clear"]:checked');
+            
+            if (!trees || !buildings || !clear) {
+                alert('Please answer all questions before generating assessment');
+                return;
+            }
+            
+            var box = document.getElementById('assessmentBox');
+            box.style.display = 'block';
+            
+            var score = 0;
+            var issues = [];
+            
+            if (installHeight >= 4.5) {
+                score += 3;
+            } else if (installHeight >= 2.5) {
+                score += 2;
+                issues.push('Marginal installation height (' + installHeight.toFixed(1) + 'm)');
+            } else {
+                score += 0;
+                issues.push('Installation height too low (' + installHeight.toFixed(1) + 'm)');
+            }
+            
+            if (trees.value === 'no') {
+                score += 3;
+            } else {
+                score += 0;
+                issues.push('Trees present in FOV - may block signal');
+            }
+            
+            if (buildings.value === 'no') {
+                score += 2;
+            } else {
+                score += 0;
+                issues.push('Tall buildings present - likely signal obstruction');
+            }
+            
+            if (clear.value === 'yes') {
+                score += 2;
+            } else {
+                score += 0;
+                issues.push('Coverage area obstructed');
+            }
+            
+            var html = '';
+            
+            if ((trees.value === 'yes' || buildings.value === 'yes') && score < 10) {
+                html = '<div class="assessment warning">';
+                html += '<div style="font-size:24px; margin-bottom:10px">⚠ MARGINAL SITE</div>';
+                html += '<div style="margin-bottom:10px">Critical obstructions detected:</div>';
+                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:13px;">';
+                issues.forEach(function(issue) {
+                    html += '<li>' + issue + '</li>';
+                });
+                html += '</ul>';
+                html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
+                html += '<div style="margin-top:10px; font-size:11px; font-weight:bold;">⚠ Professional site survey REQUIRED</div>';
+                html += '</div>';
+            } else if (score >= 8 && issues.length === 0) {
+                html = '<div class="assessment good">';
+                html += '<div style="font-size:24px; margin-bottom:10px">✓ EXCELLENT SITE</div>';
+                html += '<div>Installation likely to succeed</div>';
+                html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
+                html += '</div>';
+            } else if (score >= 5) {
+                html = '<div class="assessment warning">';
+                html += '<div style="font-size:24px; margin-bottom:10px">⚠ MARGINAL SITE</div>';
+                html += '<div style="margin-bottom:10px">Issues detected:</div>';
+                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:13px;">';
+                issues.forEach(function(issue) {
+                    html += '<li>' + issue + '</li>';
+                });
+                html += '</ul>';
+                html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
+                html += '<div style="margin-top:10px; font-size:11px">Recommend site visit verification</div>';
+                html += '</div>';
+            } else {
+                html = '<div class="assessment bad">';
+                html += '<div style="font-size:24px; margin-bottom:10px">✗ POOR SITE</div>';
+                html += '<div style="margin-bottom:10px">Major issues:</div>';
+                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:13px;">';
+                issues.forEach(function(issue) {
+                    html += '<li>' + issue + '</li>';
+                });
+                html += '</ul>';
+                html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
+                html += '<div style="margin-top:10px; font-size:11px">Consider alternative location</div>';
+                html += '</div>';
+            }
+            
+            box.innerHTML = html;
+        }
+
+        function updateCalculations() {
+            // At 35° elevation, ground coverage distance
+            var elevationAngle = 35 * Math.PI / 180;
+            var maxGroundDistance = installHeight / Math.tan(elevationAngle);
+            var maxGroundDistanceFt = maxGroundDistance * 3.28084;
+            
+            // Area of the cone segment
+            var area = (Math.PI * maxGroundDistance * maxGroundDistance * fovAngle) / 360;
+            var areaSqFt = area * 10.7639;
+            
+            document.getElementById('rangeValue').textContent = maxGroundDistance.toFixed(1) + 'm / ' + maxGroundDistanceFt.toFixed(1) + 'ft';
+            document.getElementById('areaValue').textContent = area.toFixed(1) + ' sq m / ' + areaSqFt.toFixed(1) + ' sq ft';
+        }
+
+        function handleMeasureClick(location) {
+            if (!measureStart) {
+                measureStart = location;
+                var startMarker = new google.maps.Marker({
+                    position: location,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 6,
+                        fillColor: '#ffff00',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2
+                    }
+                });
+                measureMarkers.push(startMarker);
+            } else {
+                var distance = google.maps.geometry.spherical.computeDistanceBetween(measureStart, location);
+                var distanceFt = distance * 3.28084;
+                
+                var endMarker = new google.maps.Marker({
+                    position: location,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 6,
+                        fillColor: '#ffff00',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2
+                    }
+                });
+                measureMarkers.push(endMarker);
+                
+                var line = new google.maps.Polyline({
+                    path: [measureStart, location],
+                    strokeColor: '#ffff00',
+                    strokeWeight: 3,
+                    map: map
+                });
+                measureMarkers.push(line);
+                
+                var midLat = (measureStart.lat() + location.lat()) / 2;
+                var midLng = (measureStart.lng() + location.lng()) / 2;
+                
+                var label = new google.maps.Marker({
+                    position: {lat: midLat, lng: midLng},
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 0
+                    },
+                    label: {
+                        text: distance.toFixed(1) + 'm / ' + distanceFt.toFixed(1) + 'ft',
+                        color: '#00ff00',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                    }
+                });
+                measureMarkers.push(label);
+                
+                measureStart = null;
+                measureMode = false;
+                document.getElementById('measureBtn').classList.remove('active');
+            }
+        }
+
+        function handleObstacleClick(location) {
+            var obstacle = new google.maps.Marker({
+                position: location,
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: '#ff0000',
+                    fillOpacity: 0.6,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2
+                },
+                label: {
+                    text: '🌲',
+                    fontSize: '20px'
+                }
+            });
+            obstacles.push(obstacle);
+        }
+
+        document.getElementById('toggleViewBtn').addEventListener('click', function() {
+            if (!marker) {
+                alert('Please place a marker first');
+                return;
+            }
+            
+            var markerPos = marker.getPosition();
+            
+            if (!isStreetView) {
+                // Switch TO street view
+                streetViewService.getPanorama({
+                    location: markerPos,
+                    radius: 50
+                }, function(data, status) {
+                    if (status === 'OK') {
+                        panorama.setPosition(data.location.latLng);
+                        panorama.setPov({
+                            heading: 0, // North
+                            pitch: 35   // 35° elevation
+                        });
+                        panorama.setVisible(true);
+                        isStreetView = true;
+                        document.getElementById('toggleViewBtn').textContent = '🗺️ Back to Satellite';
+                        document.getElementById('toggleViewBtn').classList.add('active');
+                    } else {
+                        alert('Street View not available at this location');
+                    }
+                });
+            } else {
+                // Switch BACK to satellite
+                panorama.setVisible(false);
+                isStreetView = false;
+                document.getElementById('toggleViewBtn').textContent = '🔄 Toggle Street View';
+                document.getElementById('toggleViewBtn').classList.remove('active');
+            }
+        });
+
+        document.getElementById('measureBtn').addEventListener('click', function() {
+            measureMode = !measureMode;
+            obstacleMode = false;
+            this.classList.toggle('active');
+            document.getElementById('markObstacleBtn').classList.remove('active');
+            if (measureMode) {
+                measureStart = null;
+            }
+        });
+
+        document.getElementById('markObstacleBtn').addEventListener('click', function() {
+            obstacleMode = !obstacleMode;
+            measureMode = false;
+            this.classList.toggle('active');
+            document.getElementById('measureBtn').classList.remove('active');
+        });
+
+        document.getElementById('clearToolsBtn').addEventListener('click', function() {
+            measureMarkers.forEach(function(item) {
+                item.setMap(null);
+            });
+            measureMarkers = [];
+            measureStart = null;
+            measureMode = false;
+            
+            obstacles.forEach(function(obstacle) {
+                obstacle.setMap(null);
+            });
+            obstacles = [];
+            obstacleMode = false;
+            
+            document.getElementById('measureBtn').classList.remove('active');
+            document.getElementById('markObstacleBtn').classList.remove('active');
+        });
+
+        document.getElementById('opacitySlider').addEventListener('input', function() {
+            coneOpacity = parseInt(this.value) / 100;
+            document.getElementById('opacityValue').textContent = this.value + '%';
+            if (cone) {
+                cone.setOptions({fillOpacity: coneOpacity});
+            }
+        });
+
+        document.getElementById('assessBtn').addEventListener('click', performAssessment);
+
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            var address = document.getElementById('addressInput').value;
+            if (!address) {
+                alert('Please enter an address');
+                return;
+            }
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ address: address }, function(results, status) {
+                if (status === 'OK') {
+                    map.setCenter(results[0].geometry.location);
+                    map.setZoom(21);
+                    
+                    if (searchMarker) {
+                        searchMarker.setMap(null);
+                    }
+                    
+                    searchMarker = new google.maps.Marker({
+                        position: results[0].geometry.location,
+                        map: map,
+                        animation: google.maps.Animation.BOUNCE,
+                        icon: {
+                            path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+                            scale: 8,
+                            fillColor: '#00ff00',
+                            fillOpacity: 1,
+                            strokeColor: '#ffffff',
+                            strokeWeight: 3,
+                            rotation: 180
+                        },
+                        label: {
+                            text: '📍',
+                            color: '#00ff00',
+                            fontSize: '20px'
+                        }
+                    });
+                    
+                    setTimeout(function() {
+                        if (searchMarker) {
+                            searchMarker.setAnimation(null);
+                        }
+                    }, 3000);
+                } else {
+                    alert('Address not found');
+                }
+            });
+        });
+
+        document.getElementById('addressInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchBtn').click();
+            }
+        });
+
+        document.getElementById('groundBtn').addEventListener('click', function() {
+            installHeight = 1.7;
+            document.getElementById('groundBtn').classList.add('active');
+            document.getElementById('roofBtn').classList.remove('active');
+            document.getElementById('heightSlider').value = 1.7;
+            document.getElementById('heightValue').textContent = '1.7m / 5.6ft';
+            updateCalculations();
+            updateCone();
+        });
+
+        document.getElementById('roofBtn').addEventListener('click', function() {
+            installHeight = 5.0;
+            document.getElementById('roofBtn').classList.add('active');
+            document.getElementById('groundBtn').classList.remove('active');
+            document.getElementById('heightSlider').value = 5.0;
+            document.getElementById('heightValue').textContent = '5.0m / 16.4ft';
+            updateCalculations();
+            updateCone();
+        });
+
+        document.getElementById('heightSlider').addEventListener('input', function() {
+            installHeight = parseFloat(this.value);
+            var heightFt = installHeight * 3.28084;
+            document.getElementById('heightValue').textContent = installHeight.toFixed(1) + 'm / ' + heightFt.toFixed(1) + 'ft';
+            updateCalculations();
+            updateCone();
+        });
+
+        document.getElementById('fovSlider').addEventListener('input', function() {
+            fovAngle = parseInt(this.value);
+            document.getElementById('fovValue').textContent = fovAngle + ' deg';
+            updateCalculations();
+            updateCone();
+        });
+        
+        document.getElementById('rotationSlider').addEventListener('input', function() {
+            coneRotation = parseInt(this.value);
+            var dirName = getDirectionName(coneRotation);
+            document.getElementById('rotationValue').textContent = coneRotation + '° (' + dirName + ')';
+            updateCone();
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            if (marker) {
+                marker.setMap(null);
+            }
+            if (cone) {
+                cone.setMap(null);
+            }
+            if (directionLine) {
+                directionLine.setMap(null);
+            }
+            marker = null;
+            cone = null;
+            directionLine = null;
+            document.getElementById('assessmentBox').style.display = 'none';
+            document.getElementById('questionBox').style.display = 'none';
+            document.getElementById('locationBox').style.display = 'none';
+            this.style.display = 'none';
+        });
+        
+        document.getElementById('toggleDmsBtn').addEventListener('click', function() {
+            showDms = !showDms;
+            if (showDms) {
+                document.getElementById('dmsRow').style.display = 'flex';
+                document.getElementById('dmsValue').style.display = 'block';
+                this.textContent = 'Hide DMS Format';
+            } else {
+                document.getElementById('dmsRow').style.display = 'none';
+                document.getElementById('dmsValue').style.display = 'none';
+                this.textContent = 'Show DMS Format';
+            }
+        });
+    </script>
+
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCo3bz9Sam8ZcLlLsUaMajGR1RJ5Kw62C4&callback=initMap" async defer></script>
+</body>
+</html>
