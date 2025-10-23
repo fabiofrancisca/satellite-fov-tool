@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Satellite FOV Tool - With Beam Divergence</title>
+    <title>Satellite FOV Tool - Fixed Version</title>
     <style>
         body {
             margin: 0;
@@ -63,32 +63,23 @@
             background: #00dd00;
         }
         
-        /* ============================================ */
-        /* MAIN LAYOUT CONFIGURATION                    */
-        /* ============================================ */
         .container {
             display: flex;
             height: calc(100vh - 116px);
         }
         
-        /* CENTER: MAP (takes remaining space) */
         #map {
             flex: 1;
             position: relative;
         }
         
-        /* RIGHT: CONTROLS PANEL */
-        /* TO CHANGE PANEL WIDTH: Edit the 'width' value below */
-        /* Current: 450px (good readability) */
-        /* Options: 400px (compact), 500px (wider), 550px (very wide) */
         .controls {
-            width: 450px;  /* <-- CHANGE THIS NUMBER TO ADJUST PANEL WIDTH */
+            width: 450px;
             background: #2a2a2a;
             padding: 15px;
             overflow-y: auto;
             border-left: 2px solid #00ff00;
         }
-        /* ============================================ */
         
         .section {
             margin-bottom: 18px;
@@ -313,7 +304,6 @@
             margin-top: 10px;
         }
         
-        /* Scrollbar styling */
         .controls::-webkit-scrollbar {
             width: 8px;
         }
@@ -344,10 +334,8 @@
     </div>
 
     <div class="container">
-        <!-- CENTER: MAP (takes most space) -->
         <div id="map"></div>
         
-        <!-- RIGHT: ALL CONTROLS -->
         <div class="controls">
             <div class="section">
                 <h3>🛠️ View Tools</h3>
@@ -394,7 +382,7 @@
                 </div>
                 <div class="highlight-note">
                     <strong>⚠️ Critical Insight:</strong><br>
-                    The RF beam is MUCH narrower than the FOV cone in the first 50m. Trees at 20-30m are in a tight beam path - even small obstructions can block the signal.
+                    The RF beam is MUCH narrower than the FOV cone in the first 50m. Trees at 20-30m are in a tight beam path.
                 </div>
             </div>
 
@@ -509,7 +497,7 @@
                     Critical Zone: Within 30m of installation<br>
                     Tall trees (40ft+) within 30m may block signal if taller than roof height.<br><br>
                     <strong>NEW: RF Beam Path</strong><br>
-                    The actual RF beam is only ~50-80cm wide at 20-30m. Even small trees in the narrow beam path can cause blockage.
+                    The actual RF beam is only ~50-80cm wide at 20-30m.
                 </div>
             </div>
 
@@ -518,25 +506,12 @@
     </div>
 
     <script>
-        // ========================================
-        // MARKER SIZE CONFIGURATION
-        // ========================================
-        // TO CHANGE MARKER SIZE: Edit the 'scale' value below
-        // Larger number = bigger marker
-        // Current: scale: 18 (increased from original 12)
-        var MARKER_SIZE = 18; // <-- CHANGE THIS NUMBER TO ADJUST MARKER SIZE
-        // Examples: 15 = medium, 20 = large, 25 = very large, 30 = extra large
-        // ========================================
-        
-        // ========================================
-        // RF BEAM DIVERGENCE CONFIGURATION
-        // ========================================
-        var DISH_DIAMETER_M = 0.48; // Starlink-size dish (~48cm)
-        var BEAM_FREQUENCY_GHZ = 12; // Default: 12 GHz (Ku-band)
-        var SPEED_OF_LIGHT = 299792458; // m/s
-        var BEAM_MAX_RANGE_M = 100; // Only show beam cone up to 100m
+        var MARKER_SIZE = 18;
+        var DISH_DIAMETER_M = 0.48;
+        var BEAM_FREQUENCY_GHZ = 12;
+        var SPEED_OF_LIGHT = 299792458;
+        var BEAM_MAX_RANGE_M = 100;
         var showBeamDivergence = false;
-        // ========================================
         
         var map;
         var panorama;
@@ -544,7 +519,7 @@
         var isStreetView = false;
         var marker;
         var cone;
-        var beamCone; // NEW: narrow RF beam cone
+        var beamCone;
         var searchMarker;
         var directionLine;
         var installHeight = 5.0;
@@ -585,20 +560,11 @@
         }
 
         function placeMarker(location) {
-            if (marker) {
-                marker.setMap(null);
-            }
-            if (cone) {
-                cone.setMap(null);
-            }
-            if (beamCone) {
-                beamCone.setMap(null);
-            }
-            if (directionLine) {
-                directionLine.setMap(null);
-            }
+            if (marker) marker.setMap(null);
+            if (cone) cone.setMap(null);
+            if (beamCone) beamCone.setMap(null);
+            if (directionLine) directionLine.setMap(null);
 
-            // CREATE MARKER WITH CONFIGURABLE SIZE
             marker = new google.maps.Marker({
                 position: location,
                 map: map,
@@ -668,11 +634,8 @@
         }
 
         function calculateBeamwidth() {
-            // λ = c / f
-            var wavelength = SPEED_OF_LIGHT / (BEAM_FREQUENCY_GHZ * 1e9); // in meters
-            // θ (radians) ≈ λ / D
+            var wavelength = SPEED_OF_LIGHT / (BEAM_FREQUENCY_GHZ * 1e9);
             var beamwidthRad = wavelength / DISH_DIAMETER_M;
-            // Convert to degrees
             var beamwidthDeg = beamwidthRad * (180 / Math.PI);
             return beamwidthDeg;
         }
@@ -681,7 +644,6 @@
             var beamwidth = calculateBeamwidth();
             document.getElementById('beamwidthDisplay').textContent = '~' + beamwidth.toFixed(1) + '°';
             
-            // Calculate beam radius at different distances
             var beamwidthRad = beamwidth * (Math.PI / 180);
             var radius20m = 20 * Math.tan(beamwidthRad / 2);
             var radius30m = 30 * Math.tan(beamwidthRad / 2);
@@ -692,25 +654,17 @@
         }
 
         function updateCone() {
-            if (!marker) {
-                return;
-            }
-            if (cone) {
-                cone.setMap(null);
-            }
-            if (beamCone) {
-                beamCone.setMap(null);
-            }
-            if (directionLine) {
-                directionLine.setMap(null);
-            }
+            if (!marker) return;
+            
+            if (cone) cone.setMap(null);
+            if (beamCone) beamCone.setMap(null);
+            if (directionLine) directionLine.setMap(null);
 
             var elevationAngle = 35 * Math.PI / 180;
             var maxGroundDistance = installHeight / Math.tan(elevationAngle);
-            
             var center = marker.getPosition();
             
-            // DRAW MAIN FOV CONE (wide green cone)
+            // Main FOV cone
             var path = [];
             path.push(center);
             var halfAngle = fovAngle / 2;
@@ -732,7 +686,7 @@
                 map: map
             });
             
-            // DRAW NARROW BEAM CONE (if enabled)
+            // Beam cone if enabled
             if (showBeamDivergence) {
                 var beamwidth = calculateBeamwidth();
                 var beamHalfAngle = beamwidth / 2;
@@ -850,7 +804,7 @@
                 });
                 html += '</ul>';
                 html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
-                html += '<div style="margin-top:10px; font-size:11px; font-weight:bold;">💡 May need alternate location or professional survey</div>';
+                html += '<div style="margin-top:10px; font-size:11px; font-weight:bold;">💡 May need alternate location</div>';
                 html += '</div>';
             } else if (score >= 8 && issues.length === 0) {
                 html = '<div class="assessment good">';
@@ -1138,7 +1092,7 @@
                         }
                     }, 3000);
                 } else {
-                    alert('Address not found');
+                    alert('Address not found: ' + status);
                 }
             });
         });
@@ -1192,22 +1146,16 @@
         });
 
         document.getElementById('clearBtn').addEventListener('click', function() {
-            if (marker) {
-                marker.setMap(null);
-            }
-            if (cone) {
-                cone.setMap(null);
-            }
-            if (beamCone) {
-                beamCone.setMap(null);
-            }
-            if (directionLine) {
-                directionLine.setMap(null);
-            }
+            if (marker) marker.setMap(null);
+            if (cone) cone.setMap(null);
+            if (beamCone) beamCone.setMap(null);
+            if (directionLine) directionLine.setMap(null);
+            
             marker = null;
             cone = null;
             beamCone = null;
             directionLine = null;
+            
             document.getElementById('assessmentBox').style.display = 'none';
             document.getElementById('questionBox').style.display = 'none';
             document.getElementById('locationBox').style.display = 'none';
