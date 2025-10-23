@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Satellite FOV Tool</title>
+    <title>Satellite FOV Tool - With Beam Divergence</title>
     <style>
         body {
             margin: 0;
@@ -10,204 +10,259 @@
             font-family: Arial, sans-serif;
             background: #1a1a1a;
             color: white;
+            overflow: hidden;
         }
+        
         .header {
             background: #2a5298;
-            padding: 20px;
+            padding: 15px 20px;
             border-bottom: 3px solid #00ff00;
         }
+        
         .header h1 {
-            margin: 0;
+            margin: 0 0 5px 0;
             color: #00ff00;
+            font-size: 22px;
         }
+        
+        .header p {
+            margin: 0;
+            font-size: 13px;
+            color: #ccc;
+        }
+        
         .search-bar {
             background: #2a2a2a;
-            padding: 15px;
+            padding: 12px 15px;
             display: flex;
             gap: 10px;
         }
+        
         #addressInput {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             background: #1a1a1a;
             color: white;
             border: 2px solid #444;
             border-radius: 5px;
+            font-size: 14px;
         }
+        
         #searchBtn {
-            padding: 12px 30px;
+            padding: 10px 25px;
             background: #00ff00;
             color: black;
             border: none;
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 14px;
         }
+        
+        #searchBtn:hover {
+            background: #00dd00;
+        }
+        
+        /* ============================================ */
+        /* MAIN LAYOUT CONFIGURATION                    */
+        /* ============================================ */
         .container {
             display: flex;
-            height: calc(100vh - 140px);
+            height: calc(100vh - 116px);
         }
+        
+        /* CENTER: MAP (takes remaining space) */
         #map {
             flex: 1;
             position: relative;
         }
-        .map-tools {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 10px;
-            border-radius: 5px;
-            border: 2px solid #00ff00;
-            z-index: 1000;
-            max-width: 160px;
+        
+        /* RIGHT: CONTROLS PANEL */
+        /* TO CHANGE PANEL WIDTH: Edit the 'width' value below */
+        /* Current: 450px (good readability) */
+        /* Options: 400px (compact), 500px (wider), 550px (very wide) */
+        .controls {
+            width: 450px;  /* <-- CHANGE THIS NUMBER TO ADJUST PANEL WIDTH */
+            background: #2a2a2a;
+            padding: 15px;
+            overflow-y: auto;
+            border-left: 2px solid #00ff00;
         }
-        .tool-btn {
-            display: block;
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 5px;
+        /* ============================================ */
+        
+        .section {
+            margin-bottom: 18px;
             background: #1a1a1a;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        
+        .section h3 {
+            color: #00ff00;
+            margin: 0 0 10px 0;
+            font-size: 15px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 6px;
+        }
+        
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 10px;
+            background: #2a2a2a;
             color: white;
             border: 2px solid #444;
             border-radius: 5px;
             cursor: pointer;
             font-size: 12px;
+            transition: all 0.2s;
         }
-        .tool-btn.active {
-            background: #00ff00;
-            color: black;
+        
+        .btn:hover {
             border-color: #00ff00;
         }
-        .tool-btn:last-child {
-            margin-bottom: 0;
-        }
-        .opacity-control {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #444;
-        }
-        .opacity-control label {
-            font-size: 11px;
-            display: block;
-            margin-bottom: 5px;
-            color: white;
-        }
-        .controls {
-            width: 350px;
-            background: #2a2a2a;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .section {
-            margin-bottom: 20px;
-        }
-        .section h3 {
-            color: #00ff00;
-            margin-bottom: 10px;
-        }
-        .btn-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .btn {
-            padding: 12px;
-            background: #1a1a1a;
-            color: white;
-            border: 2px solid #444;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+        
         .btn.active {
             background: #00ff00;
             color: black;
             border-color: #00ff00;
         }
+        
         .slider-label {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            font-size: 13px;
         }
+        
         .value {
             color: #00ff00;
             font-weight: bold;
         }
+        
         input[type="range"] {
             width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #444;
+            border-radius: 3px;
+            outline: none;
         }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00ff00;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #00ff00;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
         .info-box {
-            background: #1a1a1a;
-            padding: 15px;
+            background: #2a2a2a;
+            padding: 10px;
             border-radius: 5px;
-            border: 1px solid #444;
-            margin-bottom: 15px;
+            margin-top: 10px;
         }
+        
         .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
         }
+        
         .info-row:last-child {
             margin-bottom: 0;
         }
+        
         .assessment {
-            padding: 15px;
+            padding: 12px;
             border-radius: 5px;
             text-align: center;
-            margin-bottom: 15px;
+            margin: 10px 0;
             border: 2px solid;
+            font-size: 13px;
         }
+        
         .good {
             background: rgba(0, 255, 0, 0.1);
             border-color: #00ff00;
             color: #00ff00;
         }
+        
         .warning {
             background: rgba(255, 165, 0, 0.1);
             border-color: #ffa500;
             color: #ffa500;
         }
+        
         .bad {
             background: rgba(255, 0, 0, 0.1);
             border-color: #ff4444;
             color: #ff4444;
         }
+        
         .question-box {
             background: #1a1a1a;
-            padding: 15px;
+            padding: 12px;
             border-radius: 5px;
             border: 2px solid #00ff00;
             margin-bottom: 15px;
         }
+        
         .question-box h4 {
             margin: 0 0 10px 0;
             color: #00ff00;
+            font-size: 14px;
         }
+        
         .question-item {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            font-size: 12px;
         }
+        
         .question-item:last-child {
             margin-bottom: 0;
         }
+        
         .question-item label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
+            margin-bottom: 6px;
         }
+        
         .radio-group {
             display: flex;
-            gap: 15px;
+            gap: 12px;
         }
+        
         .radio-group label {
             display: flex;
             align-items: center;
             gap: 5px;
             cursor: pointer;
+            font-size: 12px;
         }
+        
         .assess-btn {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: #00ff00;
             color: black;
             border: none;
@@ -215,60 +270,144 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
+            font-size: 13px;
         }
+        
+        .assess-btn:hover {
+            background: #00dd00;
+        }
+        
         .clear-btn {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: #ff4444;
             color: white;
             border: none;
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 13px;
         }
-        hr {
-            border: none;
-            border-top: 1px solid #444;
-            margin: 15px 0;
+        
+        .clear-btn:hover {
+            background: #ff2222;
+        }
+        
+        .note {
+            font-size: 11px;
+            color: #888;
+            font-style: italic;
+            margin-top: 10px;
+            padding: 8px;
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+        
+        .highlight-note {
+            font-size: 11px;
+            color: #ffa500;
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid #ffa500;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        /* Scrollbar styling */
+        .controls::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .controls::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        
+        .controls::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+        
+        .controls::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Satellite FOV Assessment Tool</h1>
-        <p>Search address and assess installation viability</p>
+        <h1>🛰️ Satellite FOV Assessment Tool</h1>
+        <p>B2B Beta Site Analysis - With RF Beam Divergence Modeling</p>
     </div>
 
     <div class="search-bar">
         <input type="text" id="addressInput" placeholder="Enter address (e.g., 3462 NE Marion Lane, Issaquah, WA)">
-        <button id="searchBtn">Search Location</button>
+        <button id="searchBtn">🔍 Search Location</button>
     </div>
 
     <div class="container">
-        <div id="map">
-            <div class="map-tools">
-                <button class="tool-btn" id="measureBtn">📏 Measure Distance</button>
-                <button class="tool-btn" id="markObstacleBtn">🌲 Mark Obstacle</button>
-                <button class="tool-btn" id="clearToolsBtn">🗑️ Clear Markings</button>
-                <button class="tool-btn" id="toggleViewBtn">🔄 Toggle Street View</button>
-                <div class="opacity-control">
-                    <label>Cone Opacity: <span id="opacityValue">25%</span></label>
-                    <input type="range" id="opacitySlider" min="0" max="80" value="25" style="width: 100%;">
-                </div>
-            </div>
-        </div>
+        <!-- CENTER: MAP (takes most space) -->
+        <div id="map"></div>
         
+        <!-- RIGHT: ALL CONTROLS -->
         <div class="controls">
             <div class="section">
-                <h3>Installation Type</h3>
+                <h3>🛠️ View Tools</h3>
                 <div class="btn-group">
-                    <button class="btn" id="groundBtn">Ground/Pole<br>1.7m</button>
-                    <button class="btn active" id="roofBtn">Roof Mount<br>5m</button>
+                    <button class="btn" id="toggleViewBtn">👁️ Street View</button>
+                    <button class="btn" id="distanceCirclesBtn">📍 30m Zone</button>
+                </div>
+                <div class="btn-group" style="margin-top: 8px;">
+                    <button class="btn" id="measureBtn">📏 Measure</button>
+                    <button class="btn" id="clearToolsBtn">🗑️ Clear Tools</button>
+                </div>
+                <div class="info-box">
+                    <div style="font-size: 11px; color: #aaa;">
+                        <strong>Cone Opacity:</strong> <span class="value" id="opacityValue">25%</span>
+                    </div>
+                    <input type="range" id="opacitySlider" min="0" max="80" value="25" style="margin-top: 5px;">
                 </div>
             </div>
 
             <div class="section">
-                <h3>Installation Height</h3>
+                <h3>⚡ RF Beam Divergence (NEW!)</h3>
+                <button class="btn" id="toggleBeamBtn" style="width: 100%; margin-bottom: 10px;">Show Beam Path</button>
+                <div class="info-box">
+                    <div class="info-row">
+                        <span>Frequency:</span>
+                        <span class="value" id="freqDisplay">12 GHz</span>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label style="font-size: 11px; color: #aaa;">Frequency (GHz):</label>
+                        <input type="range" id="freqSlider" min="10" max="20" value="12" style="margin-top: 4px;">
+                    </div>
+                    <div class="info-row" style="margin-top: 8px;">
+                        <span>Beamwidth:</span>
+                        <span class="value" id="beamwidthDisplay">~3.0°</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Beam @ 20m:</span>
+                        <span class="value" id="beam20Display">~1.0m wide</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Beam @ 30m:</span>
+                        <span class="value" id="beam30Display">~1.6m wide</span>
+                    </div>
+                </div>
+                <div class="highlight-note">
+                    <strong>⚠️ Critical Insight:</strong><br>
+                    The RF beam is MUCH narrower than the FOV cone in the first 50m. Trees at 20-30m are in a tight beam path - even small obstructions can block the signal.
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📐 Installation Type</h3>
+                <div class="btn-group">
+                    <button class="btn" id="groundBtn">Ground/Pole<br>1.7m / 5.6ft</button>
+                    <button class="btn active" id="roofBtn">Roof Mount<br>5.0m / 16.4ft</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📏 Installation Height</h3>
                 <div class="slider-label">
                     <span>Height from ground</span>
                     <span class="value" id="heightValue">5.0m / 16.4ft</span>
@@ -277,7 +416,7 @@
             </div>
 
             <div class="section">
-                <h3>FOV Cone Angle</h3>
+                <h3>🎯 FOV Cone Angle</h3>
                 <div class="slider-label">
                     <span>Cone angle</span>
                     <span class="value" id="fovValue">110 deg</span>
@@ -286,41 +425,39 @@
             </div>
 
             <div class="section">
-                <h3>Cone Direction (Azimuth)</h3>
+                <h3>🧭 Cone Direction (Azimuth)</h3>
                 <div class="slider-label">
-                    <span>Rotate to find best view</span>
+                    <span>Rotation</span>
                     <span class="value" id="rotationValue">0° (North)</span>
                 </div>
                 <input type="range" id="rotationSlider" min="0" max="360" value="0">
-                <p style="font-size: 11px; color: #888; margin-top: 5px;">Antenna is azimuth independent - can face any direction</p>
+                <div class="note">Antenna is azimuth independent - can face any direction</div>
             </div>
 
-            <hr>
-
             <div id="questionBox" style="display: none;" class="question-box">
-                <h4>Site Assessment Questions</h4>
+                <h4>📋 Site Assessment Questions</h4>
                 
                 <div class="question-item">
-                    <label>Are there obstructions (trees/buildings) within the green coverage cone?</label>
+                    <label>Are there tall trees (40ft+) WITHIN the cone?</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="trees" value="no"> No - Clear sky</label>
-                        <label><input type="radio" name="trees" value="yes"> Yes - Obstructed</label>
+                        <label><input type="radio" name="trees" value="no"> No</label>
+                        <label><input type="radio" name="trees" value="yes"> Yes</label>
                     </div>
                 </div>
 
                 <div class="question-item">
-                    <label>Can you rotate the cone to find a direction with 110° of clear sky?</label>
+                    <label>If trees present, are they close (<30m) OR very tall?</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="buildings" value="no"> Yes - Found clear direction</label>
-                        <label><input type="radio" name="buildings" value="yes"> No - All directions blocked</label>
+                        <label><input type="radio" name="buildings" value="no"> Distant/short</label>
+                        <label><input type="radio" name="buildings" value="yes"> Close/tall</label>
                     </div>
                 </div>
 
                 <div class="question-item">
-                    <label>At 35° elevation angle, is the sky view mostly unobstructed?</label>
+                    <label>Overall sky view in direction (check Street View)?</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="clear" value="yes"> Yes - Clear</label>
-                        <label><input type="radio" name="clear" value="no"> No - Blocked</label>
+                        <label><input type="radio" name="clear" value="yes"> Clear</label>
+                        <label><input type="radio" name="clear" value="no"> Obstructed</label>
                     </div>
                 </div>
 
@@ -329,37 +466,51 @@
 
             <div id="assessmentBox" style="display: none;"></div>
 
-            <div class="info-box">
-                <h3>Coverage</h3>
-                <div class="info-row">
-                    <span>Direction:</span>
-                    <span class="value" id="directionDisplay">NORTH (0°)</span>
-                </div>
-                <div class="info-row">
-                    <span>Ground Range:</span>
-                    <span class="value" id="rangeValue">3.5m / 11.5ft</span>
-                </div>
-                <div class="info-row">
-                    <span>Coverage Area:</span>
-                    <span class="value" id="areaValue">10.7 sq m / 115.2 sq ft</span>
+            <div class="section">
+                <h3>📊 Coverage Info</h3>
+                <div class="info-box">
+                    <div class="info-row">
+                        <span>Direction:</span>
+                        <span class="value" id="directionDisplay">NORTH (0°)</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Ground Range:</span>
+                        <span class="value" id="rangeValue">3.5m / 11.5ft</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Coverage Area:</span>
+                        <span class="value" id="areaValue">10.7 sq m / 115.2 sq ft</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="info-box" id="locationBox" style="display: none;">
-                <h3>Installation Location</h3>
-                <div class="info-row">
-                    <span>Latitude:</span>
-                    <span class="value" id="latValue">--</span>
+            <div class="section" id="locationBox" style="display: none;">
+                <h3>📍 Installation Location</h3>
+                <div class="info-box">
+                    <div class="info-row">
+                        <span>Latitude:</span>
+                        <span class="value" id="latValue">--</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Longitude:</span>
+                        <span class="value" id="lngValue">--</span>
+                    </div>
+                    <div id="dmsRow" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid #444;">
+                        <div style="font-size: 11px; color: #888; margin-bottom: 4px;">DMS Format:</div>
+                        <div id="dmsValue" style="font-size: 11px; color: #00ff00;"></div>
+                    </div>
+                    <button class="btn" id="toggleDmsBtn" style="margin-top: 8px; width: 100%;">Show DMS Format</button>
                 </div>
-                <div class="info-row">
-                    <span>Longitude:</span>
-                    <span class="value" id="lngValue">--</span>
+            </div>
+
+            <div class="section">
+                <div class="note">
+                    <strong>🌲 Tree Clearance Guide</strong><br>
+                    Critical Zone: Within 30m of installation<br>
+                    Tall trees (40ft+) within 30m may block signal if taller than roof height.<br><br>
+                    <strong>NEW: RF Beam Path</strong><br>
+                    The actual RF beam is only ~50-80cm wide at 20-30m. Even small trees in the narrow beam path can cause blockage.
                 </div>
-                <div class="info-row" id="dmsRow" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
-                    <span style="font-size: 12px;">DMS Format:</span>
-                </div>
-                <div id="dmsValue" style="font-size: 11px; color: #00ff00; margin-top: 5px; display: none;"></div>
-                <button class="btn" id="toggleDmsBtn" style="margin-top: 10px; width: 100%; font-size: 12px;">Show DMS Format</button>
             </div>
 
             <button class="clear-btn" id="clearBtn" style="display: none;">Clear Placement</button>
@@ -367,26 +518,47 @@
     </div>
 
     <script>
+        // ========================================
+        // MARKER SIZE CONFIGURATION
+        // ========================================
+        // TO CHANGE MARKER SIZE: Edit the 'scale' value below
+        // Larger number = bigger marker
+        // Current: scale: 18 (increased from original 12)
+        var MARKER_SIZE = 18; // <-- CHANGE THIS NUMBER TO ADJUST MARKER SIZE
+        // Examples: 15 = medium, 20 = large, 25 = very large, 30 = extra large
+        // ========================================
+        
+        // ========================================
+        // RF BEAM DIVERGENCE CONFIGURATION
+        // ========================================
+        var DISH_DIAMETER_M = 0.48; // Starlink-size dish (~48cm)
+        var BEAM_FREQUENCY_GHZ = 12; // Default: 12 GHz (Ku-band)
+        var SPEED_OF_LIGHT = 299792458; // m/s
+        var BEAM_MAX_RANGE_M = 100; // Only show beam cone up to 100m
+        var showBeamDivergence = false;
+        // ========================================
+        
         var map;
         var panorama;
         var streetViewService;
         var isStreetView = false;
         var marker;
         var cone;
+        var beamCone; // NEW: narrow RF beam cone
         var searchMarker;
         var directionLine;
         var installHeight = 5.0;
         var fovAngle = 110;
         var coneOpacity = 0.25;
         var showDms = false;
-        var coneRotation = 0; // Degrees from north (0 = north, 90 = east, etc.)
+        var coneRotation = 0;
         
         var measureMode = false;
         var measureStart = null;
         var measureMarkers = [];
         
-        var obstacleMode = false;
-        var obstacles = [];
+        var distanceCircles = [];
+        var showDistanceCircles = false;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -403,14 +575,13 @@
             map.addListener('click', function(e) {
                 if (measureMode) {
                     handleMeasureClick(e.latLng);
-                } else if (obstacleMode) {
-                    handleObstacleClick(e.latLng);
                 } else {
                     placeMarker(e.latLng);
                 }
             });
 
             updateCalculations();
+            updateBeamCalculations();
         }
 
         function placeMarker(location) {
@@ -420,17 +591,21 @@
             if (cone) {
                 cone.setMap(null);
             }
+            if (beamCone) {
+                beamCone.setMap(null);
+            }
             if (directionLine) {
                 directionLine.setMap(null);
             }
 
+            // CREATE MARKER WITH CONFIGURABLE SIZE
             marker = new google.maps.Marker({
                 position: location,
                 map: map,
                 draggable: true,
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
-                    scale: 12,
+                    scale: MARKER_SIZE,
                     fillColor: '#ff0000',
                     fillOpacity: 1,
                     strokeColor: '#ffffff',
@@ -492,6 +667,30 @@
             return degrees + '°' + minutes + "'" + seconds + '"' + direction;
         }
 
+        function calculateBeamwidth() {
+            // λ = c / f
+            var wavelength = SPEED_OF_LIGHT / (BEAM_FREQUENCY_GHZ * 1e9); // in meters
+            // θ (radians) ≈ λ / D
+            var beamwidthRad = wavelength / DISH_DIAMETER_M;
+            // Convert to degrees
+            var beamwidthDeg = beamwidthRad * (180 / Math.PI);
+            return beamwidthDeg;
+        }
+
+        function updateBeamCalculations() {
+            var beamwidth = calculateBeamwidth();
+            document.getElementById('beamwidthDisplay').textContent = '~' + beamwidth.toFixed(1) + '°';
+            
+            // Calculate beam radius at different distances
+            var beamwidthRad = beamwidth * (Math.PI / 180);
+            var radius20m = 20 * Math.tan(beamwidthRad / 2);
+            var radius30m = 30 * Math.tan(beamwidthRad / 2);
+            
+            document.getElementById('beam20Display').textContent = '~' + (radius20m * 2).toFixed(1) + 'm wide';
+            document.getElementById('beam30Display').textContent = '~' + (radius30m * 2).toFixed(1) + 'm wide';
+            document.getElementById('freqDisplay').textContent = BEAM_FREQUENCY_GHZ + ' GHz';
+        }
+
         function updateCone() {
             if (!marker) {
                 return;
@@ -499,22 +698,23 @@
             if (cone) {
                 cone.setMap(null);
             }
+            if (beamCone) {
+                beamCone.setMap(null);
+            }
             if (directionLine) {
                 directionLine.setMap(null);
             }
 
-            // Calculate radius based on 35° elevation angle
-            // At 35° elevation, ground distance = height / tan(35°)
             var elevationAngle = 35 * Math.PI / 180;
             var maxGroundDistance = installHeight / Math.tan(elevationAngle);
             
             var center = marker.getPosition();
+            
+            // DRAW MAIN FOV CONE (wide green cone)
             var path = [];
             path.push(center);
-            
             var halfAngle = fovAngle / 2;
             
-            // Create cone rotated by coneRotation degrees
             for (var i = 0; i <= 30; i++) {
                 var angle = (coneRotation - halfAngle + (fovAngle * i / 30)) * Math.PI / 180;
                 var lat = center.lat() + (maxGroundDistance / 111320) * Math.cos(angle);
@@ -532,7 +732,35 @@
                 map: map
             });
             
-            // Direction line pointing in rotation direction
+            // DRAW NARROW BEAM CONE (if enabled)
+            if (showBeamDivergence) {
+                var beamwidth = calculateBeamwidth();
+                var beamHalfAngle = beamwidth / 2;
+                var beamMaxDistance = Math.min(BEAM_MAX_RANGE_M, maxGroundDistance);
+                
+                var beamPath = [];
+                beamPath.push(center);
+                
+                for (var i = 0; i <= 30; i++) {
+                    var angle = (coneRotation - beamHalfAngle + (beamwidth * i / 30)) * Math.PI / 180;
+                    var lat = center.lat() + (beamMaxDistance / 111320) * Math.cos(angle);
+                    var lng = center.lng() + (beamMaxDistance / (111320 * Math.cos(center.lat() * Math.PI / 180))) * Math.sin(angle);
+                    beamPath.push(new google.maps.LatLng(lat, lng));
+                }
+                beamPath.push(center);
+                
+                beamCone = new google.maps.Polygon({
+                    paths: beamPath,
+                    strokeColor: '#ff6600',
+                    strokeWeight: 4,
+                    fillColor: '#ff6600',
+                    fillOpacity: 0.35,
+                    map: map,
+                    zIndex: 1000
+                });
+            }
+            
+            // Direction line
             var lineLength = maxGroundDistance * 1.2;
             var lineAngle = coneRotation * Math.PI / 180;
             var lineEndLat = center.lat() + (lineLength / 111320) * Math.cos(lineAngle);
@@ -547,7 +775,6 @@
                 zIndex: 10000
             });
             
-            // Update direction display
             var directionName = getDirectionName(coneRotation);
             document.getElementById('directionDisplay').textContent = directionName + ' (' + coneRotation + '°)';
         }
@@ -601,7 +828,7 @@
                 score += 2;
             } else {
                 score += 0;
-                issues.push('Tall buildings present - likely signal obstruction');
+                issues.push('Close/tall trees present - likely obstruction');
             }
             
             if (clear.value === 'yes') {
@@ -613,47 +840,46 @@
             
             var html = '';
             
-            if ((trees.value === 'yes' || buildings.value === 'yes') && score < 10) {
+            if ((trees.value === 'yes' || buildings.value === 'yes') && score < 8) {
                 html = '<div class="assessment warning">';
-                html += '<div style="font-size:24px; margin-bottom:10px">⚠ MARGINAL SITE</div>';
-                html += '<div style="margin-bottom:10px">Critical obstructions detected:</div>';
-                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:13px;">';
+                html += '<div style="font-size:20px; margin-bottom:10px">⚠ MARGINAL SITE</div>';
+                html += '<div style="margin-bottom:10px">Issues detected:</div>';
+                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:12px;">';
                 issues.forEach(function(issue) {
                     html += '<li>' + issue + '</li>';
                 });
                 html += '</ul>';
                 html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
-                html += '<div style="margin-top:10px; font-size:11px; font-weight:bold;">⚠ Professional site survey REQUIRED</div>';
+                html += '<div style="margin-top:10px; font-size:11px; font-weight:bold;">💡 May need alternate location or professional survey</div>';
                 html += '</div>';
             } else if (score >= 8 && issues.length === 0) {
                 html = '<div class="assessment good">';
-                html += '<div style="font-size:24px; margin-bottom:10px">✓ EXCELLENT SITE</div>';
+                html += '<div style="font-size:20px; margin-bottom:8px">✓ EXCELLENT SITE</div>';
                 html += '<div>Installation likely to succeed</div>';
-                html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
+                html += '<div style="margin-top:8px; font-size:12px">Score: ' + score + '/10</div>';
                 html += '</div>';
             } else if (score >= 5) {
                 html = '<div class="assessment warning">';
-                html += '<div style="font-size:24px; margin-bottom:10px">⚠ MARGINAL SITE</div>';
-                html += '<div style="margin-bottom:10px">Issues detected:</div>';
-                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:13px;">';
+                html += '<div style="font-size:20px; margin-bottom:8px">⚠ MARGINAL SITE</div>';
+                html += '<div style="margin-bottom:8px">Issues detected:</div>';
+                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:12px;">';
                 issues.forEach(function(issue) {
                     html += '<li>' + issue + '</li>';
                 });
                 html += '</ul>';
-                html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
-                html += '<div style="margin-top:10px; font-size:11px">Recommend site visit verification</div>';
+                html += '<div style="margin-top:8px; font-size:12px">Score: ' + score + '/10</div>';
                 html += '</div>';
             } else {
                 html = '<div class="assessment bad">';
-                html += '<div style="font-size:24px; margin-bottom:10px">✗ POOR SITE</div>';
-                html += '<div style="margin-bottom:10px">Major issues:</div>';
-                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:13px;">';
+                html += '<div style="font-size:20px; margin-bottom:8px">✗ POOR SITE</div>';
+                html += '<div style="margin-bottom:8px">Major issues:</div>';
+                html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:12px;">';
                 issues.forEach(function(issue) {
                     html += '<li>' + issue + '</li>';
                 });
                 html += '</ul>';
-                html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
-                html += '<div style="margin-top:10px; font-size:11px">Consider alternative location</div>';
+                html += '<div style="margin-top:8px; font-size:12px">Score: ' + score + '/10</div>';
+                html += '<div style="margin-top:8px; font-size:11px">Recommend alternative location</div>';
                 html += '</div>';
             }
             
@@ -661,12 +887,10 @@
         }
 
         function updateCalculations() {
-            // At 35° elevation, ground coverage distance
             var elevationAngle = 35 * Math.PI / 180;
             var maxGroundDistance = installHeight / Math.tan(elevationAngle);
             var maxGroundDistanceFt = maxGroundDistance * 3.28084;
             
-            // Area of the cone segment
             var area = (Math.PI * maxGroundDistance * maxGroundDistance * fovAngle) / 360;
             var areaSqFt = area * 10.7639;
             
@@ -741,25 +965,73 @@
             }
         }
 
-        function handleObstacleClick(location) {
-            var obstacle = new google.maps.Marker({
-                position: location,
-                map: map,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 10,
-                    fillColor: '#ff0000',
-                    fillOpacity: 0.6,
-                    strokeColor: '#ffffff',
-                    strokeWeight: 2
-                },
-                label: {
-                    text: '🌲',
-                    fontSize: '20px'
-                }
-            });
-            obstacles.push(obstacle);
+        function toggleDistanceCircles() {
+            if (!marker) {
+                alert('Place a marker first to show critical zone');
+                return;
+            }
+            
+            if (showDistanceCircles) {
+                distanceCircles.forEach(function(circle) {
+                    circle.setMap(null);
+                });
+                distanceCircles = [];
+                showDistanceCircles = false;
+                document.getElementById('distanceCirclesBtn').classList.remove('active');
+            } else {
+                var center = marker.getPosition();
+                
+                var circle = new google.maps.Circle({
+                    center: center,
+                    radius: 30,
+                    strokeColor: '#ff4444',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 3,
+                    fillColor: '#ff4444',
+                    fillOpacity: 0.1,
+                    map: map
+                });
+                distanceCircles.push(circle);
+                
+                var labelPos = google.maps.geometry.spherical.computeOffset(center, 30, 45);
+                var label = new google.maps.Marker({
+                    position: labelPos,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 0
+                    },
+                    label: {
+                        text: 'Critical Zone (30m)',
+                        color: '#ff4444',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                    }
+                });
+                distanceCircles.push(label);
+                
+                showDistanceCircles = true;
+                document.getElementById('distanceCirclesBtn').classList.add('active');
+            }
         }
+
+        // EVENT LISTENERS
+        document.getElementById('toggleBeamBtn').addEventListener('click', function() {
+            showBeamDivergence = !showBeamDivergence;
+            this.classList.toggle('active');
+            this.textContent = showBeamDivergence ? 'Hide Beam Path' : 'Show Beam Path';
+            updateCone();
+        });
+
+        document.getElementById('freqSlider').addEventListener('input', function() {
+            BEAM_FREQUENCY_GHZ = parseInt(this.value);
+            updateBeamCalculations();
+            if (showBeamDivergence) {
+                updateCone();
+            }
+        });
+
+        document.getElementById('distanceCirclesBtn').addEventListener('click', toggleDistanceCircles);
 
         document.getElementById('toggleViewBtn').addEventListener('click', function() {
             if (!marker) {
@@ -770,7 +1042,6 @@
             var markerPos = marker.getPosition();
             
             if (!isStreetView) {
-                // Switch TO street view
                 streetViewService.getPanorama({
                     location: markerPos,
                     radius: 50
@@ -778,41 +1049,31 @@
                     if (status === 'OK') {
                         panorama.setPosition(data.location.latLng);
                         panorama.setPov({
-                            heading: 0, // North
-                            pitch: 35   // 35° elevation
+                            heading: coneRotation,
+                            pitch: 35
                         });
                         panorama.setVisible(true);
                         isStreetView = true;
-                        document.getElementById('toggleViewBtn').textContent = '🗺️ Back to Satellite';
+                        document.getElementById('toggleViewBtn').textContent = '🗺️ Satellite';
                         document.getElementById('toggleViewBtn').classList.add('active');
                     } else {
                         alert('Street View not available at this location');
                     }
                 });
             } else {
-                // Switch BACK to satellite
                 panorama.setVisible(false);
                 isStreetView = false;
-                document.getElementById('toggleViewBtn').textContent = '🔄 Toggle Street View';
+                document.getElementById('toggleViewBtn').textContent = '👁️ Street View';
                 document.getElementById('toggleViewBtn').classList.remove('active');
             }
         });
 
         document.getElementById('measureBtn').addEventListener('click', function() {
             measureMode = !measureMode;
-            obstacleMode = false;
             this.classList.toggle('active');
-            document.getElementById('markObstacleBtn').classList.remove('active');
             if (measureMode) {
                 measureStart = null;
             }
-        });
-
-        document.getElementById('markObstacleBtn').addEventListener('click', function() {
-            obstacleMode = !obstacleMode;
-            measureMode = false;
-            this.classList.toggle('active');
-            document.getElementById('measureBtn').classList.remove('active');
         });
 
         document.getElementById('clearToolsBtn').addEventListener('click', function() {
@@ -822,15 +1083,7 @@
             measureMarkers = [];
             measureStart = null;
             measureMode = false;
-            
-            obstacles.forEach(function(obstacle) {
-                obstacle.setMap(null);
-            });
-            obstacles = [];
-            obstacleMode = false;
-            
             document.getElementById('measureBtn').classList.remove('active');
-            document.getElementById('markObstacleBtn').classList.remove('active');
         });
 
         document.getElementById('opacitySlider').addEventListener('input', function() {
@@ -945,11 +1198,15 @@
             if (cone) {
                 cone.setMap(null);
             }
+            if (beamCone) {
+                beamCone.setMap(null);
+            }
             if (directionLine) {
                 directionLine.setMap(null);
             }
             marker = null;
             cone = null;
+            beamCone = null;
             directionLine = null;
             document.getElementById('assessmentBox').style.display = 'none';
             document.getElementById('questionBox').style.display = 'none';
@@ -960,17 +1217,15 @@
         document.getElementById('toggleDmsBtn').addEventListener('click', function() {
             showDms = !showDms;
             if (showDms) {
-                document.getElementById('dmsRow').style.display = 'flex';
-                document.getElementById('dmsValue').style.display = 'block';
+                document.getElementById('dmsRow').style.display = 'block';
                 this.textContent = 'Hide DMS Format';
             } else {
                 document.getElementById('dmsRow').style.display = 'none';
-                document.getElementById('dmsValue').style.display = 'none';
                 this.textContent = 'Show DMS Format';
             }
         });
     </script>
 
-      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCo3bz9Sam8ZcLlLsUaMajGR1RJ5Kw62C4&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCo3bz9Sam8ZcLlLsUaMajGR1RJ5Kw62C4&callback=initMap&libraries=geometry" async defer></script>
 </body>
 </html>
