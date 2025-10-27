@@ -324,8 +324,9 @@
 </head>
 <body>
     <div class="header">
-        <h1>🛰️ Satellite FOV Assessment Tool</h1>
-        <p>B2B Beta Site Analysis - With RF Beam Divergence Modeling</p>
+        <h1>🛰️ Satellite Site Screening Tool</h1>
+        <p>B2B-B2C Beta Site Pre-Screening - Fast filtering for obvious approve/reject sites</p>
+        <p style="font-size: 11px; color: #ffa500; margin-top: 5px;">⚠️ SCREENING TOOL ONLY - Marginal sites require on-site validation</p>
     </div>
 
     <div class="search-bar">
@@ -498,6 +499,30 @@
                     Tall trees (40ft+) within 30m may block signal if taller than roof height.<br><br>
                     <strong>NEW: RF Beam Path</strong><br>
                     The actual RF beam is only ~50-80cm wide at 20-30m.
+                </div>
+            </div>
+
+            <div class="section" style="border: 2px solid #ffa500;">
+                <h3 style="color: #ffa500;">⚠️ Tool Limitations</h3>
+                <div style="font-size: 11px; line-height: 1.6;">
+                    <strong style="color: #00ff00;">ACCURATE FOR:</strong><br>
+                    ✅ Obvious rejections (dense forest, blocked sky)<br>
+                    ✅ Obvious approvals (clear fields, parking lots)<br>
+                    ✅ North direction indicator<br>
+                    ✅ Lat/long coordinates<br><br>
+                    
+                    <strong style="color: #ffa500;">LIMITED ACCURACY:</strong><br>
+                    ⚠️ Tree distance beyond 30m (perspective distortion)<br>
+                    ⚠️ Tree heights (2D imagery only)<br>
+                    ⚠️ Imagery may be 1-5 years old<br>
+                    ⚠️ Marginal sites need validation<br><br>
+                    
+                    <strong style="color: #ff4444;">NOT A REPLACEMENT FOR:</strong><br>
+                    ❌ On-site surveys<br>
+                    ❌ Professional RF site tools<br>
+                    ❌ Final decisions on borderline sites<br><br>
+                    
+                    <strong>USE THIS TOOL TO:</strong> Filter obvious sites, then validate marginal cases with Street View, customer photos, or on-site survey.
                 </div>
             </div>
 
@@ -797,6 +822,7 @@
             if ((trees.value === 'yes' || buildings.value === 'yes') && score < 8) {
                 html = '<div class="assessment warning">';
                 html += '<div style="font-size:20px; margin-bottom:10px">⚠ MARGINAL SITE</div>';
+                html += '<div style="font-size:11px; color:#ffa500; margin-bottom:10px">CONFIDENCE: MEDIUM - Requires validation</div>';
                 html += '<div style="margin-bottom:10px">Issues detected:</div>';
                 html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:12px;">';
                 issues.forEach(function(issue) {
@@ -804,17 +830,20 @@
                 });
                 html += '</ul>';
                 html += '<div style="margin-top:10px; font-size:12px">Score: ' + score + '/10</div>';
-                html += '<div style="margin-top:10px; font-size:11px; font-weight:bold;">💡 May need alternate location</div>';
+                html += '<div style="margin-top:10px; font-size:11px; font-weight:bold;">💡 Recommend: Customer photos, Street View check, or on-site survey</div>';
                 html += '</div>';
             } else if (score >= 8 && issues.length === 0) {
                 html = '<div class="assessment good">';
                 html += '<div style="font-size:20px; margin-bottom:8px">✓ EXCELLENT SITE</div>';
+                html += '<div style="font-size:11px; color:#00ff00; margin-bottom:8px">CONFIDENCE: HIGH - Screening suggests approval</div>';
                 html += '<div>Installation likely to succeed</div>';
                 html += '<div style="margin-top:8px; font-size:12px">Score: ' + score + '/10</div>';
+                html += '<div style="margin-top:8px; font-size:10px; font-style:italic;">Note: Final approval may still require on-site validation</div>';
                 html += '</div>';
             } else if (score >= 5) {
                 html = '<div class="assessment warning">';
                 html += '<div style="font-size:20px; margin-bottom:8px">⚠ MARGINAL SITE</div>';
+                html += '<div style="font-size:11px; color:#ffa500; margin-bottom:8px">CONFIDENCE: MEDIUM - Requires validation</div>';
                 html += '<div style="margin-bottom:8px">Issues detected:</div>';
                 html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:12px;">';
                 issues.forEach(function(issue) {
@@ -822,10 +851,12 @@
                 });
                 html += '</ul>';
                 html += '<div style="margin-top:8px; font-size:12px">Score: ' + score + '/10</div>';
+                html += '<div style="margin-top:8px; font-size:11px">Recommend: Request customer photos or on-site survey</div>';
                 html += '</div>';
             } else {
                 html = '<div class="assessment bad">';
                 html += '<div style="font-size:20px; margin-bottom:8px">✗ POOR SITE</div>';
+                html += '<div style="font-size:11px; color:#ff4444; margin-bottom:8px">CONFIDENCE: HIGH - Screening suggests rejection</div>';
                 html += '<div style="margin-bottom:8px">Major issues:</div>';
                 html += '<ul style="text-align:left; margin:0; padding-left:20px; font-size:12px;">';
                 issues.forEach(function(issue) {
@@ -833,7 +864,7 @@
                 });
                 html += '</ul>';
                 html += '<div style="margin-top:8px; font-size:12px">Score: ' + score + '/10</div>';
-                html += '<div style="margin-top:8px; font-size:11px">Recommend alternative location</div>';
+                html += '<div style="margin-top:8px; font-size:11px">Recommend alternative location or configuration</div>';
                 html += '</div>';
             }
             
